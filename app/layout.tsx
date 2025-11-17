@@ -27,10 +27,10 @@ export default function RootLayout({
                   <Image 
                     src="/verhoeven-logo.svg" 
                     alt="Verhoeven's Zagerij en Houthandel" 
-                    width={220} 
-                    height={47}
+                    width={275} 
+                    height={59}
                     priority
-                    style={{ width: 'auto', height: '47px' }}
+                    style={{ width: '220px', height: 'auto' }}
                   />
                 </Link>
                 <div className="border-l border-verhoeven-gold pl-6 h-12 flex flex-col justify-center">

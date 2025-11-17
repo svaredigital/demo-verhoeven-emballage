@@ -1,6 +1,22 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // App directory is now stable in Next.js 13.4+
+  // Production optimizations
+  reactStrictMode: true,
+  swcMinify: true,
+  compress: true,
+  poweredByHeader: false,
+  
+  // Reduce build output
+  logging: {
+    fetches: {
+      fullUrl: false,
+    },
+  },
+  
+  // Production environment settings
+  env: {
+    NEXT_PUBLIC_APP_ENV: 'production',
+  },
 }
 
 module.exports = nextConfig
