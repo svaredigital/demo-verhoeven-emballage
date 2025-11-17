@@ -147,3 +147,15 @@ Voor productie implementatie zou de applicatie uitgebreid kunnen worden met:
 ## 📞 Contact
 
 Deze demo is ontwikkeld voor Verhoeven Zagerij om de mogelijkheden van een moderne EUDR traceability systeem te demonstreren.
+
+## Project structuur (verbeterd voor overzicht)
+
+- `app/` — Next.js App Router routes and `layout.tsx` (keeps routes as-is)
+- `components/` — Reusable UI components (e.g. `Header.tsx`)
+- `public/` — Static assets (logo, images)
+- `styles/` — Optional styles/readme (global CSS remains in `app/globals.css`)
+- `lib/` — Helper modules and API clients
+- `types/` — TypeScript types (e.g. `eudr.ts`)
+- `package.json`, `next.config.js`, `tailwind.config.js` — build & config files
+
+Ik heb de header verplaatst naar `components/Header.tsx` zodat `app/layout.tsx` overzichtelijk blijft. Global styles are still in `app/globals.css` to avoid breaking Next.js routing.

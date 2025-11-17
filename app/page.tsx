@@ -3,9 +3,12 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 
 export default function Home() {
-  const [currentTime, setCurrentTime] = useState(new Date())
+  const [currentTime, setCurrentTime] = useState<Date | null>(null)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+    setCurrentTime(new Date())
     const timer = setInterval(() => setCurrentTime(new Date()), 1000)
     return () => clearInterval(timer)
   }, [])
@@ -19,9 +22,11 @@ export default function Home() {
         <p className="text-gray-600 mb-4">
           Demo applicatie voor Verhoeven Zagerij
         </p>
-        <p className="text-sm text-gray-500">
-          Huidige tijd: {currentTime.toLocaleString('nl-NL')}
-        </p>
+        {mounted && currentTime && (
+          <p className="text-sm text-gray-500">
+            Huidige tijd: {currentTime.toLocaleString('nl-NL')}
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
