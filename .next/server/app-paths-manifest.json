@@ -1,9 +1,5 @@
 {
   "/page": "app/page.js",
   "/eudr-validatie/page": "app/eudr-validatie/page.js",
-  "/rapporten/page": "app/rapporten/page.js",
-  "/productie/page": "app/productie/page.js",
-  "/ontvangst/page": "app/ontvangst/page.js",
-  "/voorraad/page": "app/voorraad/page.js",
-  "/dashboard/page": "app/dashboard/page.js"
+  "/ontvangst/page": "app/ontvangst/page.js"
 }

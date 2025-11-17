@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 // Simulatie van TRACES systeem data
 const MOCK_TRACES_DATA = {
@@ -109,10 +110,16 @@ export default function EUDRValidatie() {
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
           <div className="text-center mb-8">
           <div className="mb-4">
-            <div className="w-20 h-20 bg-forest-green rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-white text-3xl font-bold">🚛</span>
+            <div className="flex justify-center mb-4">
+              <Image 
+                src="/verhoeven-logo.svg" 
+                alt="Verhoeven's Zagerij" 
+                width={275} 
+                height={59}
+                priority
+                className="h-16 w-auto"
+              />
             </div>
-            <h1 className="text-3xl font-bold text-wood-brown mb-2">Verhoeven Emballage</h1>
             <h2 className="text-xl font-semibold text-gray-700 mb-2">Chauffeur Vracht Aanmelding</h2>
             <p className="text-gray-600">Meld je vracht aan voor EUDR controle</p>
           </div>
@@ -132,7 +139,7 @@ export default function EUDRValidatie() {
                 type="text"
                 value={eudrNumber}
                 onChange={(e) => setEudrNumber(e.target.value.toUpperCase())}
-                className="w-full p-6 text-2xl border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-forest-green focus:border-forest-green text-center font-mono"
+                className="w-full p-6 text-2xl border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-verhoeven-green focus:border-verhoeven-green text-center font-mono"
                 placeholder="EUDR-2024-001"
                 disabled={isValidating}
               />
@@ -146,7 +153,7 @@ export default function EUDRValidatie() {
                 type="text"
                 value={cmrNumber}
                 onChange={(e) => setCmrNumber(e.target.value.toUpperCase())}
-                className="w-full p-6 text-2xl border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-forest-green focus:border-forest-green text-center font-mono"
+                className="w-full p-6 text-2xl border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-verhoeven-green focus:border-verhoeven-green text-center font-mono"
                 placeholder="CMR-2024-12345"
                 disabled={isValidating}
               />
@@ -160,7 +167,7 @@ export default function EUDRValidatie() {
                 type="number"
                 value={aantalSteres || ''}
                 onChange={(e) => setAantalSteres(Number(e.target.value))}
-                className="w-full p-6 text-2xl border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-forest-green focus:border-forest-green text-center"
+                className="w-full p-6 text-2xl border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-verhoeven-green focus:border-verhoeven-green text-center"
                 placeholder="25"
                 min="1"
                 step="0.5"
@@ -171,7 +178,7 @@ export default function EUDRValidatie() {
             <button
               onClick={validateEUDR}
               disabled={isValidating || !eudrNumber.trim() || !cmrNumber.trim() || aantalSteres <= 0}
-              className="w-full bg-forest-green text-white py-8 px-8 text-2xl font-bold rounded-xl hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors shadow-lg"
+              className="w-full bg-verhoeven-green text-white py-8 px-8 text-2xl font-bold rounded-xl hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors shadow-lg"
             >
               {isValidating ? (
                 <div className="flex items-center justify-center">

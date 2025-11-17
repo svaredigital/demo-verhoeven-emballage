@@ -13,7 +13,7 @@ export default function Home() {
   return (
     <div className="space-y-8">
       <div className="bg-white rounded-lg shadow-lg p-6">
-        <h1 className="text-3xl font-bold text-wood-brown mb-2">
+        <h1 className="text-3xl font-bold text-verhoeven-green mb-2">
           Welkom bij het EUDR Traceability Systeem
         </h1>
         <p className="text-gray-600 mb-4">
@@ -31,7 +31,7 @@ export default function Home() {
             <div className="w-12 h-12 bg-forest-green rounded-lg flex items-center justify-center text-white font-bold text-xl">
               1
             </div>
-            <h2 className="ml-4 text-xl font-semibold text-wood-brown">EUDR Validatie</h2>
+            <h2 className="ml-4 text-xl font-semibold text-verhoeven-green">EUDR Validatie</h2>
           </div>
           <p className="text-gray-600">
             Chauffeur vult EUDR nummer in en valideert via TRACES systeem
@@ -44,7 +44,7 @@ export default function Home() {
             <div className="w-12 h-12 bg-forest-green rounded-lg flex items-center justify-center text-white font-bold text-xl">
               2
             </div>
-            <h2 className="ml-4 text-xl font-semibold text-wood-brown">Ontvangst</h2>
+            <h2 className="ml-4 text-xl font-semibold text-verhoeven-green">Ontvangst</h2>
           </div>
           <p className="text-gray-600">
             Registreer leverancier, CMR nummer, PEFC nummer en andere details
@@ -57,7 +57,7 @@ export default function Home() {
             <div className="w-12 h-12 bg-forest-green rounded-lg flex items-center justify-center text-white font-bold text-xl">
               3
             </div>
-            <h2 className="ml-4 text-xl font-semibold text-wood-brown">Voorraad</h2>
+            <h2 className="ml-4 text-xl font-semibold text-verhoeven-green">Voorraad</h2>
           </div>
           <p className="text-gray-600">
             Overzicht van huidige voorraad met TRACES IDs
@@ -70,7 +70,7 @@ export default function Home() {
             <div className="w-12 h-12 bg-forest-green rounded-lg flex items-center justify-center text-white font-bold text-xl">
               4
             </div>
-            <h2 className="ml-4 text-xl font-semibold text-wood-brown">Productie Run</h2>
+            <h2 className="ml-4 text-xl font-semibold text-verhoeven-green">Productie Run</h2>
           </div>
           <p className="text-gray-600">
             Start nieuwe productie run met weekly batch nummers
@@ -83,7 +83,7 @@ export default function Home() {
             <div className="w-12 h-12 bg-forest-green rounded-lg flex items-center justify-center text-white font-bold text-xl">
               5
             </div>
-            <h2 className="ml-4 text-xl font-semibold text-wood-brown">Rapporten</h2>
+            <h2 className="ml-4 text-xl font-semibold text-verhoeven-green">Rapporten</h2>
           </div>
           <p className="text-gray-600">
             Batch uitkomsten en traceability rapporten
@@ -96,7 +96,7 @@ export default function Home() {
             <div className="w-12 h-12 bg-sage-green rounded-lg flex items-center justify-center text-white font-bold text-xl">
               📊
             </div>
-            <h2 className="ml-4 text-xl font-semibold text-wood-brown">Dashboard</h2>
+            <h2 className="ml-4 text-xl font-semibold text-verhoeven-green">Dashboard</h2>
           </div>
           <p className="text-gray-600">
             Volledig overzicht van alle processen en data
@@ -105,7 +105,7 @@ export default function Home() {
       </div>
 
       <div className="bg-white rounded-lg shadow-lg p-6">
-        <h3 className="text-lg font-semibold text-wood-brown mb-3">Proces Flow</h3>
+        <h3 className="text-lg font-semibold text-verhoeven-green mb-3">Proces Flow</h3>
         <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
           <span className="bg-forest-green text-white px-3 py-1 rounded">EUDR Validatie</span>
           <span className="text-gray-400">→</span>

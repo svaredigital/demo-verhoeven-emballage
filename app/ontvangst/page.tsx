@@ -137,7 +137,7 @@ export default function OntvangstRegistratie() {
             <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-white text-2xl font-bold">✓</span>
             </div>
-            <h1 className="text-2xl font-bold text-wood-brown mb-2">Ontvangst Succesvol Geregistreerd!</h1>
+            <h1 className="text-2xl font-bold text-verhoeven-green mb-2">Ontvangst Succesvol Geregistreerd!</h1>
             <p className="text-gray-600 mb-6">
               De levering is toegevoegd aan de voorraad met TRACES ID: <strong>{formData.tracesId}</strong>
             </p>
@@ -145,7 +145,7 @@ export default function OntvangstRegistratie() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/voorraad"
-                className="bg-forest-green text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
+                className="bg-verhoeven-green text-white px-6 py-3 rounded-lg hover:bg-emerald-700 transition-colors"
               >
                 Bekijk Voorraad
               </Link>
@@ -187,7 +187,7 @@ export default function OntvangstRegistratie() {
       {showVooraanmeldingen && vooraanmeldingen.length > 0 && (
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-wood-brown">Goedgekeurde Vooraanmeldingen</h2>
+            <h2 className="text-xl font-bold text-verhoeven-green">Goedgekeurde Vooraanmeldingen</h2>
             <button
               onClick={() => setShowVooraanmeldingen(false)}
               className="text-gray-500 hover:text-gray-700"
@@ -238,17 +238,17 @@ export default function OntvangstRegistratie() {
 
       <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-wood-brown">Ontvangst Registratie</h1>
+          <h1 className="text-2xl font-bold text-verhoeven-green">Ontvangst Registratie</h1>
           <div className="flex gap-2">
             {!showVooraanmeldingen && vooraanmeldingen.length > 0 && (
               <button
                 onClick={() => setShowVooraanmeldingen(true)}
-                className="text-forest-green hover:underline text-sm"
+                className="text-verhoeven-green hover:underline text-sm"
               >
                 ← Vooraanmeldingen
               </button>
             )}
-            <Link href="/" className="text-forest-green hover:underline">
+            <Link href="/" className="text-verhoeven-green hover:underline">
               ← Terug naar hoofdmenu
             </Link>
           </div>
@@ -266,7 +266,7 @@ export default function OntvangstRegistratie() {
                 name="eudrNumber"
                 value={formData.eudrNumber}
                 onChange={handleInputChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-green focus:border-transparent"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-verhoeven-green focus:border-transparent"
                 placeholder="EUDR-2024-001"
                 required
                 disabled={!!searchParams.get('eudr')}
@@ -281,7 +281,7 @@ export default function OntvangstRegistratie() {
                 name="tracesId"
                 value={formData.tracesId}
                 onChange={handleInputChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-green focus:border-transparent"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-verhoeven-green focus:border-transparent"
                 placeholder="TRACES-ABC123"
                 required
                 disabled={!!searchParams.get('traces')}
@@ -296,7 +296,7 @@ export default function OntvangstRegistratie() {
                 name="chauffeurNaam"
                 value={formData.chauffeurNaam}
                 onChange={handleInputChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-green focus:border-transparent"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-verhoeven-green focus:border-transparent"
                 placeholder="Jan Jansen"
                 required
                 disabled={!!searchParams.get('chauffeur')}
@@ -306,7 +306,7 @@ export default function OntvangstRegistratie() {
 
           {/* Leverancier informatie */}
           <div>
-            <h3 className="text-lg font-semibold text-wood-brown mb-3">Leverancier Informatie</h3>
+            <h3 className="text-lg font-semibold text-verhoeven-green mb-3">Leverancier Informatie</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -317,7 +317,7 @@ export default function OntvangstRegistratie() {
                   name="leverancierNaam"
                   value={formData.leverancierNaam}
                   onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-green focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-verhoeven-green focus:border-transparent"
                   placeholder="Holz GmbH"
                   required
                 />
@@ -331,7 +331,7 @@ export default function OntvangstRegistratie() {
                   name="leverancierAdres"
                   value={formData.leverancierAdres}
                   onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-green focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-verhoeven-green focus:border-transparent"
                   placeholder="Waldstraße 123, München"
                 />
               </div>
@@ -343,7 +343,7 @@ export default function OntvangstRegistratie() {
                   name="leverancierLand"
                   value={formData.leverancierLand}
                   onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-green focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-verhoeven-green focus:border-transparent"
                 >
                   <option value="">Selecteer land</option>
                   <option value="Nederland">Nederland</option>
@@ -359,7 +359,7 @@ export default function OntvangstRegistratie() {
 
           {/* Transport & Certificering */}
           <div>
-            <h3 className="text-lg font-semibold text-wood-brown mb-3">Transport & Certificering</h3>
+            <h3 className="text-lg font-semibold text-verhoeven-green mb-3">Transport & Certificering</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -370,7 +370,7 @@ export default function OntvangstRegistratie() {
                   name="cmrNumber"
                   value={formData.cmrNumber}
                   onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-green focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-verhoeven-green focus:border-transparent"
                   placeholder="CMR-2024-12345"
                   required
                 />
@@ -384,7 +384,7 @@ export default function OntvangstRegistratie() {
                   name="pefcNumber"
                   value={formData.pefcNumber}
                   onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-green focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-verhoeven-green focus:border-transparent"
                   placeholder="PEFC/01-23-45"
                   required
                 />
@@ -398,7 +398,7 @@ export default function OntvangstRegistratie() {
                   name="steresOpCmr"
                   value={formData.steresOpCmr || ''}
                   onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-green focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-verhoeven-green focus:border-transparent"
                   placeholder="Aantal steres zoals op de CMR"
                   step="0.5"
                   min="0"
@@ -409,7 +409,7 @@ export default function OntvangstRegistratie() {
 
           {/* Hout specificaties */}
           <div>
-            <h3 className="text-lg font-semibold text-wood-brown mb-3">Hout Specificaties</h3>
+            <h3 className="text-lg font-semibold text-verhoeven-green mb-3">Hout Specificaties</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -419,7 +419,7 @@ export default function OntvangstRegistratie() {
                   name="houtType"
                   value={formData.houtType}
                   onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-green focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-verhoeven-green focus:border-transparent"
                   required
                 >
                   <option value="Dennenhout">Dennenhout</option>
@@ -438,7 +438,7 @@ export default function OntvangstRegistratie() {
                   name="volume"
                   value={formData.volume || ''}
                   onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-green focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-verhoeven-green focus:border-transparent"
                   placeholder="25.5"
                   step="0.1"
                   min="0.1"
@@ -458,7 +458,7 @@ export default function OntvangstRegistratie() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-3 bg-forest-green text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              className="px-6 py-3 bg-verhoeven-green text-white rounded-lg hover:bg-emerald-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
             >
               {isSubmitting ? (
                 <div className="flex items-center">

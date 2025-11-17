@@ -1,6 +1,8 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import Image from 'next/image'
+import Link from 'next/link'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -17,11 +19,25 @@ export default function RootLayout({
   return (
     <html lang="nl">
       <body className={inter.className}>
-        <div className="min-h-screen bg-gradient-to-br from-wood-light to-sage-green">
-          <header className="bg-wood-brown text-white p-4 shadow-lg">
+        <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
+          <header className="bg-verhoeven-green text-white p-6 shadow-lg">
             <div className="container mx-auto">
-              <h1 className="text-2xl font-bold">Verhoeven Zagerij - EUDR Systeem</h1>
-              <p className="text-wood-light">Demo Traceability Systeem</p>
+              <div className="flex items-center gap-6">
+                <Link href="/" className="flex-shrink-0 hover:opacity-80 transition-opacity">
+                  <Image 
+                    src="/verhoeven-logo.svg" 
+                    alt="Verhoeven's Zagerij en Houthandel" 
+                    width={220} 
+                    height={47}
+                    priority
+                    style={{ width: 'auto', height: '47px' }}
+                  />
+                </Link>
+                <div className="border-l border-verhoeven-gold pl-6 h-12 flex flex-col justify-center">
+                  <h1 className="text-xl font-bold leading-tight">EUDR Traceability Systeem</h1>
+                  <p className="text-verhoeven-gold text-sm">Demo Applicatie</p>
+                </div>
+              </div>
             </div>
           </header>
           <main className="container mx-auto p-4">
