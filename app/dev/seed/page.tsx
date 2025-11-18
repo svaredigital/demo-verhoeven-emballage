@@ -39,9 +39,20 @@ export default function DevSeedPage() {
       {
         id: 'r1',
         batchNummer: 'BATCH-001',
-        productieWeek: '2025-W47',
+        // numeric week/year used by rapporten
+        week: 47,
+        jaar: 2025,
+        // compatibility fields used elsewhere
+        productieWeek: '47',
+        productieJaar: '2025',
+        // timestamps
+        startDatum: now,
+        eindDatum: now,
+        productieDatum: now,
         status: 'voltooid',
         gebruikteTraces: ['t-100','t-101'],
+        // total input volume (sum of seeded voorraad volumes)
+        inputVolume: 18,
         outputProducts: [
           { id: 'p-chips', naam: 'Chips', hoeveelheid: 5, eenheid: 'M3' },
           { id: 'p-zaagsel', naam: 'Zaagsel', hoeveelheid: 2, eenheid: 'tonnen' },
