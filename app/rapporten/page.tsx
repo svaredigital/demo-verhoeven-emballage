@@ -13,6 +13,7 @@ interface ProductieRun {
   status: 'actief' | 'voltooid';
   gebruikteTraces: string[];
   inputVolume: number;
+  outputProducts?: Array<{ id?: string; naam: string; hoeveelheid: number; eenheid?: string }>;
 }
 
 interface VoorraadItem {
@@ -30,11 +31,7 @@ interface VoorraadItem {
 interface BatchUitkomst {
   batchNummer: string;
   productieRunId: string;
-  producten: {
-    plankjes: number;
-    zaagsel: number;
-    chips: number;
-  };
+  producten: Array<{ naam: string; hoeveelheid: number; eenheid?: string }>;
   gebruikteTraces: {
     tracesId: string;
     volume: number;
@@ -98,22 +95,32 @@ export default function Rapporten() {
   const genereerBatchRapport = (batchNummer: string) => {
     const run = productieRuns.find(r => r.batchNummer === batchNummer)
     if (!run || run.status !== 'voltooid') return
+    // If the run contains explicit outputProducts (user-selected during production), use those
+    let productenList: Array<{ naam: string; hoeveelheid: number; eenheid?: string }> = []
+    let totaalOutput = 0
+    if (run.outputProducts && Array.isArray(run.outputProducts) && run.outputProducts.length > 0) {
+      productenList = run.outputProducts.map((p: any) => ({ naam: p.naam, hoeveelheid: Number(p.hoeveelheid || 0), eenheid: p.eenheid || 'st' }))
+      totaalOutput = productenList.reduce((s, p) => s + Number(p.hoeveelheid || 0), 0)
+    } else {
+      // Fallback: simulate production outcomes based on input (legacy runs)
+      const efficiencyFactor = 0.85 + Math.random() * 0.1 // 85-95% efficiency
+      totaalOutput = run.inputVolume * efficiencyFactor
 
-    // Simuleer productie uitkomsten gebaseerd op input
-    const efficiencyFactor = 0.85 + Math.random() * 0.1 // 85-95% efficiency
-    const totaalOutput = run.inputVolume * efficiencyFactor
+      // Verdeling van producten (simulatie)
+      const plankjesPercentage = 0.6 + Math.random() * 0.1 // 60-70%
+      const zaagselPercentage = 0.2 + Math.random() * 0.05 // 20-25%
+      const chipsPercentage = 1 - plankjesPercentage - zaagselPercentage
 
-    // Verdeling van producten (simulatie)
-    const plankjesPercentage = 0.6 + Math.random() * 0.1 // 60-70%
-    const zaagselPercentage = 0.2 + Math.random() * 0.05 // 20-25%
-    const chipsPercentage = 1 - plankjesPercentage - zaagselPercentage
+      const plankjes = totaalOutput * plankjesPercentage
+      const zaagsel = totaalOutput * zaagselPercentage
+      const chips = totaalOutput * chipsPercentage
 
-    const producten = {
-      plankjes: totaalOutput * plankjesPercentage,
-      zaagsel: totaalOutput * zaagselPercentage,
-      chips: totaalOutput * chipsPercentage
+      productenList = [
+        { naam: 'Plankjes', hoeveelheid: plankjes, eenheid: 'm³' },
+        { naam: 'Zaagsel', hoeveelheid: zaagsel, eenheid: 'm³' },
+        { naam: 'Chips', hoeveelheid: chips, eenheid: 'm³' }
+      ]
     }
-
     // Haal gebruikte traces details op
     const gebruikteTracesDetails = run.gebruikteTraces.map(tracesId => {
       const item = voorraad.find(v => v.tracesId === tracesId)
@@ -136,11 +143,11 @@ export default function Rapporten() {
     const uitkomst: BatchUitkomst = {
       batchNummer,
       productieRunId: run.id,
-      producten,
+      producten: productenList,
       gebruikteTraces: gebruikteTracesDetails,
       totaalInput: run.inputVolume,
-      totaalOutput: producten.plankjes + producten.zaagsel + producten.chips,
-      efficiencyPercentage: efficiencyFactor * 100,
+      totaalOutput,
+      efficiencyPercentage: (totaalOutput / (run.inputVolume || 1)) * 100,
       productieData: run.eindDatum || new Date()
     }
 
@@ -252,40 +259,28 @@ export default function Rapporten() {
           {/* Product uitkomsten */}
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h3 className="text-lg font-semibold text-wood-brown mb-4">Product Uitkomsten</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-wood-brown bg-opacity-10 p-4 rounded-lg">
-                <div className="flex items-center mb-2">
-                  <div className="w-4 h-4 bg-wood-brown rounded mr-2"></div>
-                  <h4 className="font-semibold">Plankjes</h4>
-                </div>
-                <p className="text-xl font-bold">{batchUitkomst.producten.plankjes.toFixed(1)} m³</p>
-                <p className="text-sm text-gray-600">
-                  {((batchUitkomst.producten.plankjes / batchUitkomst.totaalOutput) * 100).toFixed(1)}% van output
-                </p>
-              </div>
-              
-              <div className="bg-yellow-100 p-4 rounded-lg">
-                <div className="flex items-center mb-2">
-                  <div className="w-4 h-4 bg-yellow-600 rounded mr-2"></div>
-                  <h4 className="font-semibold">Zaagsel</h4>
-                </div>
-                <p className="text-xl font-bold">{batchUitkomst.producten.zaagsel.toFixed(1)} m³</p>
-                <p className="text-sm text-gray-600">
-                  {((batchUitkomst.producten.zaagsel / batchUitkomst.totaalOutput) * 100).toFixed(1)}% van output
-                </p>
-              </div>
-              
-              <div className="bg-orange-100 p-4 rounded-lg">
-                <div className="flex items-center mb-2">
-                  <div className="w-4 h-4 bg-orange-600 rounded mr-2"></div>
-                  <h4 className="font-semibold">Chips</h4>
-                </div>
-                <p className="text-xl font-bold">{batchUitkomst.producten.chips.toFixed(1)} m³</p>
-                <p className="text-sm text-gray-600">
-                  {((batchUitkomst.producten.chips / batchUitkomst.totaalOutput) * 100).toFixed(1)}% van output
-                </p>
-              </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Hoeveelheid</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Eenheid</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">% van Output</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {batchUitkomst.producten.map((p, idx) => (
+                    <tr key={`${p.naam}-${idx}`} className="hover:bg-gray-50">
+                      <td className="px-4 py-2 text-sm font-medium text-wood-brown">{p.naam}</td>
+                      <td className="px-4 py-2 text-sm">{Number(p.hoeveelheid).toFixed(1)}</td>
+                      <td className="px-4 py-2 text-sm">{p.eenheid || 'st'}</td>
+                      <td className="px-4 py-2 text-sm">{batchUitkomst.totaalOutput ? ((Number(p.hoeveelheid) / batchUitkomst.totaalOutput) * 100).toFixed(1) : '0.0'}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
 

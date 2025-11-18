@@ -33,6 +33,7 @@ export default function OntvangstRegistratie() {
     cmrNumber: '',
     pefcNumber: '',
     steresOpCmr: '',
+    maatvoering: '',
     houtType: 'Dennenhout',
     volume: 0,
   })
@@ -119,6 +120,7 @@ export default function OntvangstRegistratie() {
         id: `VRD-${Date.now()}`,
         tracesId: formData.tracesId,
         ontvangstId: ontvangst.id,
+        maatvoering: formData.maatvoering,
         houtType: formData.houtType,
         volume: Number(formData.volume),
         beschikbaarVolume: Number(formData.volume),
@@ -451,6 +453,19 @@ export default function OntvangstRegistratie() {
                   <option value="Beukenhout">Beukenhout</option>
                   <option value="Berkenhout">Berkenhout</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Maatvoering
+                </label>
+                <input
+                  type="text"
+                  name="maatvoering"
+                  value={formData.maatvoering}
+                  onChange={handleInputChange}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-verhoeven-green focus:border-transparent"
+                  placeholder="Bijv. 50x100 mm of 4x2"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
