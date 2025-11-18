@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build --no-lint",
-    "start": "npm run build && next start -p $PORT",
+    "postinstall": "next build --no-lint",
+    "start": "node server-start.js",
     "lint": "next lint"
   },
   "engines": {
