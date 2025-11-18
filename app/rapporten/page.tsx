@@ -104,7 +104,7 @@ export default function Rapporten() {
     } else {
       // Fallback: simulate production outcomes based on input (legacy runs)
       const efficiencyFactor = 0.85 + Math.random() * 0.1 // 85-95% efficiency
-      totaalOutput = run.inputVolume * efficiencyFactor
+    totaalOutput = (Number((run as any).inputVolume) || 0) * efficiencyFactor
 
       // Verdeling van producten (simulatie)
       const plankjesPercentage = 0.6 + Math.random() * 0.1 // 60-70%
@@ -140,14 +140,15 @@ export default function Rapporten() {
       }
     })
 
+    const inputVol = Number((run as any).inputVolume) || 0
     const uitkomst: BatchUitkomst = {
       batchNummer,
       productieRunId: run.id,
       producten: productenList,
       gebruikteTraces: gebruikteTracesDetails,
-      totaalInput: run.inputVolume,
+      totaalInput: inputVol,
       totaalOutput,
-      efficiencyPercentage: (totaalOutput / (run.inputVolume || 1)) * 100,
+      efficiencyPercentage: inputVol > 0 ? (totaalOutput / inputVol) * 100 : 0,
       productieData: run.eindDatum || new Date()
     }
 
@@ -206,7 +207,7 @@ export default function Rapporten() {
               <option value="">Selecteer een batch...</option>
               {voltooideRuns.map(run => (
                 <option key={run.id} value={run.batchNummer}>
-                  {run.batchNummer} - W{run.week}/{run.jaar} ({run.inputVolume.toFixed(1)} m³)
+                  {run.batchNummer} - W{(run as any).week || ''}/{(run as any).jaar || ''} ({(Number((run as any).inputVolume) || 0).toFixed(1)} m³)
                 </option>
               ))}
             </select>
@@ -322,9 +323,9 @@ export default function Rapporten() {
                       </td>
                       <td className="px-4 py-2 text-sm">{trace.leverancier}</td>
                       <td className="px-4 py-2 text-sm">{trace.houtType}</td>
-                      <td className="px-4 py-2 text-sm">{trace.volume.toFixed(1)} m³</td>
+                      <td className="px-4 py-2 text-sm">{(trace.volume || 0).toFixed(1)} m³</td>
                       <td className="px-4 py-2 text-sm">
-                        {((trace.volume / batchUitkomst.totaalInput) * 100).toFixed(1)}%
+                        {batchUitkomst.totaalInput ? ((trace.volume / batchUitkomst.totaalInput) * 100).toFixed(1) : '0.0'}%
                       </td>
                     </tr>
                   ))}

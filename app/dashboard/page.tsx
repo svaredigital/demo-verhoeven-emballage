@@ -72,21 +72,32 @@ export default function Dashboard() {
 
       // Voeg ontvangsten toe
       ontvangsten.slice(-5).forEach((ontvangst: any) => {
+        const datum = ontvangst && ontvangst.ontvangstDatum ? new Date(ontvangst.ontvangstDatum) : new Date()
+        const leverancierNaam = ontvangst?.leverancier?.naam || ontvangst?.leverancier || 'Onbekend'
+        const volume = Number(ontvangst?.volume ?? 0)
+        const houtType = ontvangst?.houtType || ''
         activiteiten.push({
           type: 'ontvangst',
-          datum: new Date(ontvangst.ontvangstDatum),
+          datum,
           beschrijving: `Ontvangst geregistreerd`,
-          details: `${ontvangst.volume}m³ ${ontvangst.houtType} van ${ontvangst.leverancier.naam}`
+          details: `${volume}m³ ${houtType} van ${leverancierNaam}`
         })
       })
 
       // Voeg productie runs toe
       productieRuns.slice(-5).forEach((run: any) => {
+        const prodDatumRaw = run?.productieDatum || run?.eindDatum || run?.startDatum || run?.createdAt || new Date().toISOString()
+        const datum = prodDatumRaw ? new Date(prodDatumRaw) : new Date()
+        const week = run?.productieWeek || run?.week || ''
+        const jaar = run?.productieJaar || run?.jaar || ''
+        const inputVolume = Number(run?.inputVolume ?? run?.totaalInput ?? 0)
+        const batch = run?.batchNummer || 'Onbekend'
+        const details = week && jaar ? `Batch ${batch} - Week ${week}/${jaar} - ${inputVolume}m³ input` : `Batch ${batch} - ${inputVolume}m³ input`
         activiteiten.push({
           type: 'productie-eind',
-          datum: new Date(run.productieDatum),
+          datum,
           beschrijving: `Productie run aangemaakt`,
-          details: `Batch ${run.batchNummer} - Week ${run.productieWeek}/${run.productieJaar} - ${run.inputVolume}m³ input`
+          details
         })
       })
 
@@ -154,21 +165,21 @@ export default function Dashboard() {
           <div className="bg-blue-50 p-4 rounded-lg">
             <h3 className="text-sm font-medium text-gray-600">Totaal Voorraad</h3>
             <p className="text-2xl font-bold text-blue-600">
-              {stats?.totaalVoorraadVolume.toFixed(1) || '0.0'} m³
+                {(Number(stats?.totaalVoorraadVolume ?? 0)).toFixed(1)} m³
             </p>
           </div>
           
           <div className="bg-green-50 p-4 rounded-lg">
             <h3 className="text-sm font-medium text-gray-600">Beschikbaar Volume</h3>
             <p className="text-2xl font-bold text-green-600">
-              {stats?.beschikbaarVolume.toFixed(1) || '0.0'} m³
+                {(Number(stats?.beschikbaarVolume ?? 0)).toFixed(1)} m³
             </p>
           </div>
           
           <div className="bg-yellow-50 p-4 rounded-lg">
             <h3 className="text-sm font-medium text-gray-600">In Productie</h3>
             <p className="text-2xl font-bold text-yellow-600">
-              {stats?.inProductieVolume.toFixed(1) || '0.0'} m³
+                {(Number(stats?.inProductieVolume ?? 0)).toFixed(1)} m³
             </p>
           </div>
         </div>
@@ -207,22 +218,22 @@ export default function Dashboard() {
             <span className="text-gray-400">→</span>
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-              <span className="text-sm">Ontvangst ({stats?.totaalOntvangsten})</span>
+              <span className="text-sm">Ontvangst ({stats?.totaalOntvangsten || 0})</span>
             </div>
             <span className="text-gray-400">→</span>
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span className="text-sm">Voorraad ({stats?.totaalVoorraadVolume.toFixed(1)}m³)</span>
+              <span className="text-sm">Voorraad ({(Number(stats?.totaalVoorraadVolume ?? 0)).toFixed(1)}m³)</span>
             </div>
             <span className="text-gray-400">→</span>
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-              <span className="text-sm">Productie ({stats?.actieveProductieRuns} actief)</span>
+              <span className="text-sm">Productie ({stats?.actieveProductieRuns || 0} actief)</span>
             </div>
             <span className="text-gray-400">→</span>
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-              <span className="text-sm">Rapporten ({stats?.voltooideProductieRuns})</span>
+              <span className="text-sm">Rapporten ({stats?.voltooideProductieRuns || 0})</span>
             </div>
           </div>
         </div>
