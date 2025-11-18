@@ -24,6 +24,12 @@ interface ProductieRun {
   gebruikteTraces: string[];
   inputVolume: number;
   customOutput?: string;
+  outputProducts?: Array<{
+    id: string;
+    naam: string;
+    hoeveelheid: number;
+    eenheid: string;
+  }>;
 }
 
 interface LeveringVoorProductie {
@@ -45,7 +51,11 @@ export default function ProductieRun() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [customOutput, setCustomOutput] = useState('')
   const [showCustomOutput, setShowCustomOutput] = useState(false)
-  const [toonAlleLeveringen, setToonAlleLeveringen] = useState(false)
+  const [outputProducts, setOutputProducts] = useState<Array<{id:string, naam:string, hoeveelheid:number, eenheid:string}>>([])
+  const [newOutputNaam, setNewOutputNaam] = useState('')
+  const [newOutputHoeveelheid, setNewOutputHoeveelheid] = useState<number | ''>('')
+  const [newOutputEenheid, setNewOutputEenheid] = useState('st')
+  
 
   useEffect(() => {
     loadData()
@@ -58,10 +68,10 @@ export default function ProductieRun() {
   }, [])
 
   useEffect(() => {
-    if ((geselecteerdeWeek && geselecteerdeJaar && voorraad.length > 0) || (toonAlleLeveringen && voorraad.length > 0)) {
+    if (voorraad.length > 0) {
       laadLeveringenVoorWeek(geselecteerdeWeek, geselecteerdeJaar)
     }
-  }, [geselecteerdeWeek, geselecteerdeJaar, voorraad, toonAlleLeveringen])
+  }, [geselecteerdeWeek, geselecteerdeJaar, voorraad])
 
   const loadData = () => {
     try {
@@ -101,46 +111,15 @@ export default function ProductieRun() {
   }
 
   const laadLeveringenVoorWeek = (week: number, jaar: number) => {
-    if (toonAlleLeveringen) {
-      // Toon alle beschikbare leveringen ongeacht de week
-      const alleLeveringen = voorraad.filter(item => item.status === 'beschikbaar')
-      
-      const leveringen: LeveringVoorProductie[] = alleLeveringen.map(item => ({
-        tracesId: item.tracesId,
-        leverancier: item.leverancier,
-        houtType: item.houtType,
-        volume: item.volume,
-        ontvangstDatum: item.ontvangstDatum,
-        geselecteerd: false
-      }))
-
-      setLeveringenVoorWeek(leveringen)
-      return
-    }
-
-    const { start, end } = getWeekDateRange(week, jaar)
-    
-    // Check of er al een productie run is voor deze week
-    const bestaandeRun = bestaandeRuns.find(run => 
-      run.productieWeek === week && run.productieJaar === jaar
-    )
-    
-    // Filter voorraad items die in deze week zijn ontvangen
-    const leveringenInWeek = voorraad.filter(item => {
-      const ontvangstDatum = new Date(item.ontvangstDatum)
-      return ontvangstDatum >= start && 
-             ontvangstDatum <= end && 
-             item.status === 'beschikbaar'
-    })
-
-    // Converteer naar LeveringVoorProductie format
-    const leveringen: LeveringVoorProductie[] = leveringenInWeek.map(item => ({
+    // Altijd alle onverwerkte (beschikbare) vrachten tonen, ongeacht week
+    const alleLeveringen = voorraad.filter(item => item.status === 'beschikbaar')
+    const leveringen: LeveringVoorProductie[] = alleLeveringen.map(item => ({
       tracesId: item.tracesId,
       leverancier: item.leverancier,
       houtType: item.houtType,
       volume: item.volume,
       ontvangstDatum: item.ontvangstDatum,
-      geselecteerd: !bestaandeRun // Automatisch selecteren als nog geen run bestaat
+      geselecteerd: true
     }))
 
     setLeveringenVoorWeek(leveringen)
@@ -212,7 +191,8 @@ export default function ProductieRun() {
         status: customOutput ? 'voltooid' : 'concept',
         gebruikteTraces: geselecteerdeLeveringen.map(l => l.tracesId),
         inputVolume: totaalVolume,
-        customOutput: customOutput || undefined
+        customOutput: customOutput || undefined,
+        outputProducts: outputProducts.length ? outputProducts : undefined
       }
 
       // Update voorraad status naar verwerkt
@@ -230,6 +210,23 @@ export default function ProductieRun() {
       setBestaandeRuns(updatedRuns)
       localStorage.setItem('productieRuns', JSON.stringify(updatedRuns))
 
+      // Sla geproduceerde producten op in aparte opslag met batch referentie
+      try {
+        const bestaandeProducten = JSON.parse(localStorage.getItem('producten') || '[]')
+        const productenToAdd = (outputProducts || []).map(p => ({
+          id: p.id,
+          naam: p.naam,
+          hoeveelheid: p.hoeveelheid,
+          eenheid: p.eenheid,
+          batchNummer,
+          productieDatum: nieuweRun.productieDatum
+        }))
+        const updatedProducten = [...bestaandeProducten, ...productenToAdd]
+        localStorage.setItem('producten', JSON.stringify(updatedProducten))
+      } catch (err) {
+        console.error('Fout bij opslaan geproduceerde producten:', err)
+      }
+
       // Reset leveringen
       setLeveringenVoorWeek([])
       
@@ -242,6 +239,142 @@ export default function ProductieRun() {
     }
   }
 
+  // New: save draft (tussentijds opslaan) without updating voorraad or geproduceerde producten
+  const saveDraft = () => {
+    if (!geselecteerdeWeek || !geselecteerdeJaar) {
+      alert('Selecteer een week en jaar')
+      return
+    }
+
+    const geselecteerdeLeveringen = leveringenVoorWeek.filter(l => l.geselecteerd)
+    if (geselecteerdeLeveringen.length === 0) {
+      alert('Selecteer minimaal één levering om op te slaan als concept')
+      return
+    }
+
+    const batchNummer = generateBatchNumber(geselecteerdeWeek, geselecteerdeJaar)
+    const totaalVolume = geselecteerdeLeveringen.reduce((sum, l) => sum + l.volume, 0)
+
+    const conceptRun: ProductieRun = {
+      id: `RUN-${Date.now()}`,
+      batchNummer,
+      productieWeek: geselecteerdeWeek,
+      productieJaar: geselecteerdeJaar,
+      productieDatum: new Date(),
+      status: 'concept',
+      gebruikteTraces: geselecteerdeLeveringen.map(l => l.tracesId),
+      inputVolume: totaalVolume,
+      outputProducts: outputProducts.length ? outputProducts : undefined
+    }
+
+    const updatedRuns = [...bestaandeRuns, conceptRun]
+    setBestaandeRuns(updatedRuns)
+    localStorage.setItem('productieRuns', JSON.stringify(updatedRuns))
+    alert(`Concept opgeslagen: ${batchNummer}`)
+  }
+
+  // Finalize production: perform voorraad updates and save geproduceerde producten
+  const finalizeProduction = async () => {
+    if (!geselecteerdeWeek || !geselecteerdeJaar) {
+      alert('Selecteer een week en jaar')
+      return
+    }
+
+    const geselecteerdeLeveringen = leveringenVoorWeek.filter(l => l.geselecteerd)
+    if (geselecteerdeLeveringen.length === 0) {
+      alert('Selecteer minimaal één levering om definitief te produceren')
+      return
+    }
+
+    // Prevent duplicate final runs for same week/year
+    const bestaandeRun = bestaandeRuns.find(run => 
+      run.productieWeek === geselecteerdeWeek && 
+      run.productieJaar === geselecteerdeJaar && run.status === 'voltooid'
+    )
+    if (bestaandeRun) {
+      alert(`Er bestaat al een definitieve productie run voor week ${geselecteerdeWeek}/${geselecteerdeJaar}`)
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const batchNummer = generateBatchNumber(geselecteerdeWeek, geselecteerdeJaar)
+      const totaalVolume = geselecteerdeLeveringen.reduce((sum, l) => sum + l.volume, 0)
+
+      const nieuweRun: ProductieRun = {
+        id: `RUN-${Date.now()}`,
+        batchNummer,
+        productieWeek: geselecteerdeWeek,
+        productieJaar: geselecteerdeJaar,
+        productieDatum: new Date(),
+        status: 'voltooid',
+        gebruikteTraces: geselecteerdeLeveringen.map(l => l.tracesId),
+        inputVolume: totaalVolume,
+        outputProducts: outputProducts.length ? outputProducts : undefined
+      }
+
+      // Update voorraad status naar verwerkt
+      const updatedVoorraad = voorraad.map(item => {
+        if (geselecteerdeLeveringen.some(l => l.tracesId === item.tracesId)) {
+          return { ...item, status: 'verwerkt' as const }
+        }
+        return item
+      })
+      setVoorraad(updatedVoorraad)
+      localStorage.setItem('voorraad', JSON.stringify(updatedVoorraad))
+
+      // Sla productie run op
+      const updatedRuns = [...bestaandeRuns, nieuweRun]
+      setBestaandeRuns(updatedRuns)
+      localStorage.setItem('productieRuns', JSON.stringify(updatedRuns))
+
+      // Sla geproduceerde producten op in aparte opslag met batch referentie
+      try {
+        const bestaandeProducten = JSON.parse(localStorage.getItem('producten') || '[]')
+        const productenToAdd = (outputProducts || []).map(p => ({
+          id: p.id,
+          naam: p.naam,
+          hoeveelheid: p.hoeveelheid,
+          eenheid: p.eenheid,
+          batchNummer,
+          productieDatum: nieuweRun.productieDatum
+        }))
+        const updatedProducten = [...bestaandeProducten, ...productenToAdd]
+        localStorage.setItem('producten', JSON.stringify(updatedProducten))
+      } catch (err) {
+        console.error('Fout bij opslaan geproduceerde producten:', err)
+      }
+
+      // Reset leveringen
+      setLeveringenVoorWeek([])
+      setOutputProducts([])
+      alert(`Productie run ${batchNummer} is definitief geproduceerd`)
+    } catch (error) {
+      console.error('Fout bij finaliseren productie:', error)
+      alert('Er is een fout opgetreden tijdens finaliseren')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+
+  const addOutputProduct = () => {
+    if (!newOutputNaam || !newOutputHoeveelheid) return
+    const p = {
+      id: `P-${Date.now()}`,
+      naam: newOutputNaam,
+      hoeveelheid: Number(newOutputHoeveelheid),
+      eenheid: newOutputEenheid
+    }
+    setOutputProducts(prev => [...prev, p])
+    setNewOutputNaam('')
+    setNewOutputHoeveelheid('')
+    setNewOutputEenheid('st')
+  }
+
+  const removeOutputProduct = (id: string) => {
+    setOutputProducts(prev => prev.filter(p => p.id !== id))
+  }
   // Genereer week opties (huidige week + 10 weken terug en vooruit)
   const generateWeekOptions = () => {
     const options = []
@@ -310,190 +443,128 @@ export default function ProductieRun() {
 
         {/* Week selectie */}
         <div className="mb-6 space-y-4">
-          <div className="flex items-center space-x-4">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={toonAlleLeveringen}
-                onChange={(e) => {
-                  setToonAlleLeveringen(e.target.checked)
-                  if (geselecteerdeWeek && geselecteerdeJaar) {
-                    laadLeveringenVoorWeek(geselecteerdeWeek, geselecteerdeJaar)
-                  }
-                }}
-                className="mr-2 h-4 w-4 text-forest-green focus:ring-forest-green border-gray-300 rounded"
-              />
-              <span className="text-sm font-medium text-gray-700">
-                Toon alle beschikbare leveringen (ook van vorige weken)
-              </span>
-            </label>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Selecteer Productie Week</label>
+            <select
+              value={`${geselecteerdeWeek}-${geselecteerdeJaar}`}
+              onChange={(e) => {
+                const [week, jaar] = e.target.value.split('-').map(Number)
+                setGeselecteerdeWeek(week)
+                setGeselecteerdeJaar(jaar)
+              }}
+              className="w-full md:w-1/2 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-green focus:border-transparent"
+            >
+              {weekOpties.map(optie => (
+                <option key={`${optie.week}-${optie.jaar}`} value={`${optie.week}-${optie.jaar}`}>
+                  {optie.label} ({optie.dateRange})
+                </option>
+              ))}
+            </select>
           </div>
-          
-          {!toonAlleLeveringen && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Selecteer Productie Week
-              </label>
-              <select
-                value={`${geselecteerdeWeek}-${geselecteerdeJaar}`}
-                onChange={(e) => {
-                  const [week, jaar] = e.target.value.split('-').map(Number)
-                  setGeselecteerdeWeek(week)
-                  setGeselecteerdeJaar(jaar)
-                }}
-                className="w-full md:w-1/2 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-green focus:border-transparent"
-              >
-                {weekOpties.map(optie => (
-                  <option key={`${optie.week}-${optie.jaar}`} value={`${optie.week}-${optie.jaar}`}>
-                    {optie.label} ({optie.dateRange})
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Leveringen voor geselecteerde week */}
-      {((geselecteerdeWeek && geselecteerdeJaar) || toonAlleLeveringen) && (
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-semibold text-wood-brown mb-4">
-            {toonAlleLeveringen 
-              ? 'Alle Beschikbare Leveringen'
-              : `Leveringen in Week ${geselecteerdeWeek}/${geselecteerdeJaar}`
-            }
-          </h2>
+      {/* Vereenvoudigde productie UI: 3 secties */}
+      {(geselecteerdeWeek && geselecteerdeJaar) && (
+        <div className="bg-white rounded-lg shadow-lg p-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-wood-brown">Productie Week {geselecteerdeWeek}/{geselecteerdeJaar}</h2>
+            <Link href="#history" className="px-3 py-2 bg-gray-100 rounded text-sm hover:underline">Bekijk geschiedenis</Link>
+          </div>
 
-          {leveringenVoorWeek.length === 0 ? (
-            <div className="text-center py-8">
-              <div className="text-6xl mb-4">📦</div>
-              <h3 className="text-lg font-semibold text-gray-600 mb-2">Geen Leveringen</h3>
-              <p className="text-gray-500">
-                Er zijn geen beschikbare leveringen gevonden in week {geselecteerdeWeek}/{geselecteerdeJaar}
-              </p>
-            </div>
-          ) : (
-            <div>
-              <div className="mb-4 p-3 bg-forest-green bg-opacity-10 rounded-lg">
-                <p className="text-sm text-gray-700">
-                  <strong>Gevonden:</strong> {leveringenVoorWeek.length} leveringen | 
-                  <strong> Totaal volume:</strong> {leveringenVoorWeek.reduce((sum, l) => sum + l.volume, 0).toFixed(1)} m³ |
-                  <strong> Geselecteerd:</strong> {leveringenVoorWeek.filter(l => l.geselecteerd).length} leveringen ({leveringenVoorWeek.filter(l => l.geselecteerd).reduce((sum, l) => sum + l.volume, 0).toFixed(1)} m³)
-                </p>
-              </div>
+          {/* 1. Grondstoffen zonder batch */}
+          <div>
+            <h3 className="text-lg font-semibold text-wood-brown mb-2">1. Grondstoffen zonder batch</h3>
+            <p className="text-sm text-gray-600 mb-3">Onverwerkte vrachten beschikbaar voor productie</p>
 
+            {leveringenVoorWeek.length === 0 ? (
+              <div className="text-center py-6 text-gray-500">Geen onverwerkte vrachten gevonden voor deze selectie.</div>
+            ) : (
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full text-sm">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Selecteren</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">TRACES ID</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Leverancier</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Houtsoort</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Volume</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Ontvangst</th>
+                      <th className="px-3 py-2 text-left">Select</th>
+                      <th className="px-3 py-2 text-left">TRACES</th>
+                      <th className="px-3 py-2 text-left">Leverancier</th>
+                      <th className="px-3 py-2 text-left">Houtsoort</th>
+                      <th className="px-3 py-2 text-left">Volume</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {leveringenVoorWeek.map((levering) => (
-                      <tr key={levering.tracesId} className={levering.geselecteerd ? 'bg-green-50' : 'bg-white'}>
-                        <td className="px-4 py-2">
-                          <input
-                            type="checkbox"
-                            checked={levering.geselecteerd}
-                            onChange={() => toggleLevering(levering.tracesId)}
-                            className="w-4 h-4 text-forest-green border-gray-300 rounded focus:ring-forest-green"
-                          />
+                    {leveringenVoorWeek.map(l => (
+                      <tr key={l.tracesId} className={l.geselecteerd ? 'bg-green-50' : ''}>
+                        <td className="px-3 py-2">
+                          <input type="checkbox" checked={l.geselecteerd} onChange={() => toggleLevering(l.tracesId)} className="w-4 h-4" />
                         </td>
-                        <td className="px-4 py-2 text-sm font-medium text-forest-green">
-                          {levering.tracesId}
-                        </td>
-                        <td className="px-4 py-2 text-sm">{levering.leverancier}</td>
-                        <td className="px-4 py-2 text-sm">{levering.houtType}</td>
-                        <td className="px-4 py-2 text-sm">{levering.volume.toFixed(1)} m³</td>
-                        <td className="px-4 py-2 text-sm">
-                          {levering.ontvangstDatum.toLocaleDateString('nl-NL')}
-                          {toonAlleLeveringen && (
-                            <div className="text-xs text-gray-500">
-                              W{getWeekNumber(levering.ontvangstDatum)}/{levering.ontvangstDatum.getFullYear()}
-                            </div>
-                          )}
-                        </td>
+                        <td className="px-3 py-2 font-medium text-forest-green">{l.tracesId}</td>
+                        <td className="px-3 py-2">{l.leverancier}</td>
+                        <td className="px-3 py-2">{l.houtType}</td>
+                        <td className="px-3 py-2">{l.volume.toFixed(1)} m³</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
+            )}
+          </div>
 
-              {/* Custom Output Sectie */}
-              <div className="mt-6 border-t pt-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-lg font-semibold text-wood-brown">Productie Output</h3>
-                  <button
-                    onClick={() => setShowCustomOutput(!showCustomOutput)}
-                    className="text-forest-green hover:underline text-sm"
-                  >
-                    {showCustomOutput ? 'Verberg' : 'Aangepaste output maken'}
-                  </button>
-                </div>
-                
-                {showCustomOutput && (
-                  <div className="space-y-3">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Beschrijf het eindproduct van deze productie run:
-                    </label>
-                    <textarea
-                      value={customOutput}
-                      onChange={(e) => setCustomOutput(e.target.value)}
-                      placeholder="Bijv: 500 m³ pellets klasse A1, 300 m³ zaagsel voor briketten, 150 m³ houtkrullen verpakkingsmateriaal"
-                      rows={4}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-green focus:border-transparent text-sm"
-                    />
-                    <p className="text-xs text-gray-500">
-                      Deze informatie wordt opgenomen in het batch rapport en traceerbaarheidsoverzicht.
-                    </p>
-                  </div>
-                )}
-              </div>
+          {/* 2. Verwerkte artikelen */}
+          <div>
+            <h3 className="text-lg font-semibold text-wood-brown mb-2">2. Verwerkte artikelen</h3>
+            <p className="text-sm text-gray-600 mb-3">Artikel — Eenheid — Aantal</p>
 
-              <div className="mt-6 flex justify-between items-center">
-                <div className="space-x-2">
-                  <button
-                    onClick={() => setLeveringenVoorWeek(prev => prev.map(l => ({ ...l, geselecteerd: true })))}
-                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
-                  >
-                    Alles Selecteren
-                  </button>
-                  <button
-                    onClick={() => setLeveringenVoorWeek(prev => prev.map(l => ({ ...l, geselecteerd: false })))}
-                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors"
-                  >
-                    Alles Deselecteren
-                  </button>
-                </div>
-                
-                <button
-                  onClick={maakProductieRun}
-                  disabled={isSubmitting || leveringenVoorWeek.filter(l => l.geselecteerd).length === 0}
-                  className="px-6 py-3 bg-forest-green text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-                >
-                  {isSubmitting ? (
-                    <div className="flex items-center">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                      Productie Run Aanmaken...
-                    </div>
-                  ) : (
-                    `Maak Productie Run (${generateBatchNumber(geselecteerdeWeek, geselecteerdeJaar)})`
-                  )}
-                </button>
+            <div className="mb-3 grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
+              <input value={newOutputNaam} onChange={(e)=>setNewOutputNaam(e.target.value)} placeholder="Artikel (bijv. Pallet)" className="p-2 border rounded w-full" />
+              <input value={newOutputHoeveelheid as any} onChange={(e)=>setNewOutputHoeveelheid(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Aantal" className="p-2 border rounded w-full" />
+              <select value={newOutputEenheid} onChange={(e)=>setNewOutputEenheid(e.target.value)} className="p-2 border rounded w-full">
+                <option value="m3">m³</option>
+                <option value="kg">kg</option>
+                <option value="st">st</option>
+              </select>
+              <div className="w-full">
+                <button onClick={addOutputProduct} className="w-full px-3 py-2 bg-forest-green text-white rounded">Voeg toe</button>
               </div>
             </div>
-          )}
+
+            {outputProducts.length === 0 ? (
+              <div className="text-gray-500">Nog geen verwerkte artikelen toegevoegd.</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-3 py-2 text-left">Artikel</th>
+                      <th className="px-3 py-2 text-left">Eenheid</th>
+                      <th className="px-3 py-2 text-left">Aantal</th>
+                      <th className="px-3 py-2 text-left">&nbsp;</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {outputProducts.map(p => (
+                      <tr key={p.id}>
+                        <td className="px-3 py-2">{p.naam}</td>
+                        <td className="px-3 py-2">{p.eenheid}</td>
+                        <td className="px-3 py-2">{p.hoeveelheid}</td>
+                        <td className="px-3 py-2"><button onClick={()=>removeOutputProduct(p.id)} className="text-red-500 text-sm">Verwijder</button></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* 3. Buttons */}
+          <div className="flex gap-4">
+            <button onClick={saveDraft} disabled={leveringenVoorWeek.filter(l => l.geselecteerd).length === 0} className="flex-1 px-6 py-4 bg-gray-200 rounded text-lg font-semibold">Tussentijds Opslaan</button>
+            <button onClick={finalizeProduction} disabled={isSubmitting || leveringenVoorWeek.filter(l => l.geselecteerd).length === 0} className="flex-1 px-6 py-4 bg-forest-green text-white rounded text-lg font-semibold">Definitief Produceren</button>
+          </div>
         </div>
       )}
 
       {/* Bestaande productie runs */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div id="history" className="bg-white rounded-lg shadow-lg p-6">
         <h2 className="text-xl font-semibold text-wood-brown mb-4">Bestaande Productie Runs</h2>
         
         {bestaandeRuns.length === 0 ? (
@@ -509,7 +580,7 @@ export default function ProductieRun() {
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Input Volume</th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Aantal TRACES</th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Aangemaakt</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Acties</th>
+                  {/* Acties kolom verwijderd voor minimalistische weergave */}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -529,22 +600,7 @@ export default function ProductieRun() {
                     <td className="px-4 py-2 text-sm">{run.inputVolume.toFixed(1)} m³</td>
                     <td className="px-4 py-2 text-sm">{run.gebruikteTraces.length}</td>
                     <td className="px-4 py-2 text-sm">{run.productieDatum.toLocaleDateString('nl-NL')}</td>
-                    <td className="px-4 py-2 text-sm space-x-2">
-                      <Link
-                        href={`/rapporten?batch=${run.batchNummer}`}
-                        className="text-forest-green hover:underline"
-                      >
-                        Rapport
-                      </Link>
-                      {run.status !== 'voltooid' && (
-                        <button
-                          onClick={() => aanvullenProductieRun(run)}
-                          className="text-blue-600 hover:underline"
-                        >
-                          Aanvullen
-                        </button>
-                      )}
-                    </td>
+                    <td className="px-4 py-2 text-sm">&nbsp;</td>
                   </tr>
                 ))}
               </tbody>

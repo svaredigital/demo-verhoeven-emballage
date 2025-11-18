@@ -276,7 +276,7 @@ export default function EUDRValidatie() {
                       <p className="text-sm opacity-90 mt-1">Je vracht is goedgekeurd voor ontvangst</p>
                     </div>
                     <button
-                      onClick={() => setShowModal(false)}
+                      onClick={resetForm}
                       className="w-full bg-gray-500 text-white py-6 px-8 text-xl font-semibold rounded-xl hover:bg-gray-600 transition-colors shadow-lg"
                     >
                       ✓ Begrepen

@@ -258,70 +258,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Snelle acties */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-xl font-semibold text-wood-brown mb-4">Snelle Acties</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Link
-            href="/eudr-validatie"
-            className="bg-forest-green text-white p-4 rounded-lg hover:bg-green-700 transition-colors text-center"
-          >
-            <div className="text-2xl mb-2">📋</div>
-            <h3 className="font-semibold">Nieuwe Ontvangst</h3>
-            <p className="text-sm opacity-90">Valideer EUDR en registreer ontvangst</p>
-          </Link>
-          
-          <Link
-            href="/voorraad"
-            className="bg-blue-500 text-white p-4 rounded-lg hover:bg-blue-600 transition-colors text-center"
-          >
-            <div className="text-2xl mb-2">📦</div>
-            <h3 className="font-semibold">Bekijk Voorraad</h3>
-            <p className="text-sm opacity-90">Overzicht van alle voorraad items</p>
-          </Link>
-          
-          <Link
-            href="/productie"
-            className="bg-wood-brown text-white p-4 rounded-lg hover:bg-yellow-800 transition-colors text-center"
-          >
-            <div className="text-2xl mb-2">🏭</div>
-            <h3 className="font-semibold">Start Productie</h3>
-            <p className="text-sm opacity-90">Begin nieuwe productie run</p>
-          </Link>
-          
-          <Link
-            href="/rapporten"
-            className="bg-sage-green text-white p-4 rounded-lg hover:bg-green-600 transition-colors text-center"
-          >
-            <div className="text-2xl mb-2">📊</div>
-            <h3 className="font-semibold">Bekijk Rapporten</h3>
-            <p className="text-sm opacity-90">Batch uitkomsten en traceability</p>
-          </Link>
-          
-          <button
-            onClick={loadDashboardData}
-            className="bg-gray-500 text-white p-4 rounded-lg hover:bg-gray-600 transition-colors text-center"
-          >
-            <div className="text-2xl mb-2">🔄</div>
-            <h3 className="font-semibold">Ververs Data</h3>
-            <p className="text-sm opacity-90">Herlaad alle statistieken</p>
-          </button>
-          
-          <button
-            onClick={() => {
-              if (confirm('Weet je zeker dat je alle demo data wilt wissen? Dit kan niet ongedaan gemaakt worden.')) {
-                localStorage.clear()
-                window.location.reload()
-              }
-            }}
-            className="bg-red-500 text-white p-4 rounded-lg hover:bg-red-600 transition-colors text-center"
-          >
-            <div className="text-2xl mb-2">🗑️</div>
-            <h3 className="font-semibold">Reset Demo</h3>
-            <p className="text-sm opacity-90">Wis alle demo data</p>
-          </button>
-        </div>
-      </div>
+      {/* Snelle acties verwijderd voor minimalistische weergave */}
 
       {/* EUDR Compliance indicator */}
       <div className="bg-white rounded-lg shadow-lg p-6">

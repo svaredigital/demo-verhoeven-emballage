@@ -43,9 +43,16 @@ export default function OntvangstRegistratie() {
   const [showVooraanmeldingen, setShowVooraanmeldingen] = useState(true)
 
   useEffect(() => {
-    // Laad vooraanmeldingen
+    // Laad vooraanmeldingen, maar filter uit die al een ontvangst (zelfde CMR) hebben
     const opgeslagenVooraanmeldingen = JSON.parse(localStorage.getItem('vooraanmeldingen') || '[]')
-    setVooraanmeldingen(opgeslagenVooraanmeldingen.filter((v: any) => v.isValid))
+    const opgeslagenOntvangsten = JSON.parse(localStorage.getItem('ontvangsten') || '[]')
+    const onverwerkte = opgeslagenVooraanmeldingen.filter((v: any) => {
+      if (!v.isValid) return false
+      // als er al een ontvangst bestaat met hetzelfde CMR nummer, beschouwen we de vooraanmelding als verwerkt
+      const processed = opgeslagenOntvangsten.some((o: any) => o.cmrNumber && v.cmrNumber && o.cmrNumber === v.cmrNumber)
+      return !processed
+    })
+    setVooraanmeldingen(onverwerkte)
     
     // Haal data uit URL parameters als ze bestaan
     const eudr = searchParams.get('eudr')
@@ -123,6 +130,22 @@ export default function OntvangstRegistratie() {
       const bestaandeVoorraad = JSON.parse(localStorage.getItem('voorraad') || '[]')
       bestaandeVoorraad.push(voorraadItem)
       localStorage.setItem('voorraad', JSON.stringify(bestaandeVoorraad))
+
+      // Verwijder gekoppelde vooraanmelding(s) omdat deze nu verwerkt is (op basis van CMR / EUDR / TRACES)
+      try {
+        const opgeslagenVooraanmeldingen = JSON.parse(localStorage.getItem('vooraanmeldingen') || '[]')
+        const filtered = opgeslagenVooraanmeldingen.filter((v: any) => {
+          if (!v) return false
+          const sameCmr = v.cmrNumber && v.cmrNumber === ontvangst.cmrNumber
+          const sameEudr = v.eudrNumber && v.eudrNumber === ontvangst.eudrNumber
+          const sameTraces = v.tracesId && v.tracesId === ontvangst.tracesId
+          return !(sameCmr || sameEudr || sameTraces)
+        })
+        localStorage.setItem('vooraanmeldingen', JSON.stringify(filtered))
+        setVooraanmeldingen(filtered.filter((v: any) => v.isValid))
+      } catch (err) {
+        // noop
+      }
 
       setIsSubmitting(false)
       setSubmitSuccess(true)

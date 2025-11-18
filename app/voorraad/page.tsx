@@ -1,4 +1,4 @@
-'use client'
+"use client"
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
@@ -43,7 +43,10 @@ export default function VoorraadOverzicht() {
   }, [])
 
   // Filter en sorteer voorraad
+  // Belangrijk: verwerkte items worden niet in de hoofd-voorraadlijst getoond;
+  // die zijn terug te vinden onder "Gerealiseerde Producten" of in rapporten.
   const gefilterdeSorteerdeVoorraad = voorraad
+    .filter(item => item.status !== 'verwerkt')
     .filter(item => {
       if (filterStatus !== 'alle' && item.status !== filterStatus) return false
       if (filterHoutType !== 'alle' && item.houtType !== filterHoutType) return false
@@ -69,6 +72,8 @@ export default function VoorraadOverzicht() {
   const beschikbaarVolume = voorraad.reduce((sum, item) => sum + (item.status === 'beschikbaar' ? item.beschikbaarVolume : 0), 0)
   const inProductieVolume = voorraad.reduce((sum, item) => sum + (item.status === 'in-productie' ? item.beschikbaarVolume : 0), 0)
   const verwerktVolume = voorraad.reduce((sum, item) => sum + (item.status === 'verwerkt' ? item.volume : 0), 0)
+
+  const onverwerktVolume = voorraad.reduce((sum, item) => item.status !== 'verwerkt' ? sum + item.volume : sum, 0)
 
   const uniekeLeveranciers = Array.from(new Set(voorraad.map(item => item.leverancier)))
   const uniekeHoutTypes = Array.from(new Set(voorraad.map(item => item.houtType)))
@@ -117,23 +122,17 @@ export default function VoorraadOverzicht() {
           </Link>
         </div>
 
-        {/* Statistieken */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-forest-green bg-opacity-10 p-4 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-600">Totaal Volume</h3>
-            <p className="text-2xl font-bold text-forest-green">{totaalVolume.toFixed(1)} m³</p>
+        {/* Statistieken - vereenvoudigd naar 2 kaarten per verzoek */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          <div className="bg-forest-green bg-opacity-10 p-6 rounded-lg">
+            <h3 className="text-sm font-medium text-gray-600">Totale Onverwerkte Voorraad</h3>
+            <p className="text-2xl font-bold text-forest-green mt-2">{onverwerktVolume.toFixed(1)} m³</p>
+            <p className="text-sm text-gray-500 mt-1">(items met status niet 'verwerkt')</p>
           </div>
-          <div className="bg-green-50 p-4 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-600">Beschikbaar</h3>
-            <p className="text-2xl font-bold text-green-600">{beschikbaarVolume.toFixed(1)} m³</p>
-          </div>
-          <div className="bg-yellow-50 p-4 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-600">In Productie</h3>
-            <p className="text-2xl font-bold text-yellow-600">{inProductieVolume.toFixed(1)} m³</p>
-          </div>
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-600">Verwerkt</h3>
-            <p className="text-2xl font-bold text-gray-600">{verwerktVolume.toFixed(1)} m³</p>
+          <div className="bg-gray-50 p-6 rounded-lg">
+            <h3 className="text-sm font-medium text-gray-600">Totaal Geproduceerde Voorraad</h3>
+            <p className="text-2xl font-bold text-gray-700 mt-2">{verwerktVolume.toFixed(1)} m³</p>
+            <p className="text-sm text-gray-500 mt-1">(verwerkte items / geproduceerde output)</p>
           </div>
         </div>
 
@@ -146,10 +145,9 @@ export default function VoorraadOverzicht() {
               onChange={(e) => setFilterStatus(e.target.value)}
               className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-green focus:border-transparent"
             >
-              <option value="alle">Alle statussen</option>
+              <option value="alle">Alle (zonder verwerkte)</option>
               <option value="beschikbaar">Beschikbaar</option>
               <option value="in-productie">In Productie</option>
-              <option value="verwerkt">Verwerkt</option>
             </select>
           </div>
           <div className="flex-1">
@@ -201,30 +199,16 @@ export default function VoorraadOverzicht() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    TRACES ID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Leverancier
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Houtsoort
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Volume
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Beschikbaar
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ontvangst
-                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">TRACES / ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Leverancier</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Houtsoort</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Volume</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Beschikbaar</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ontvangst Datum</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -264,30 +248,78 @@ export default function VoorraadOverzicht() {
         )}
       </div>
 
-      {/* Quick actions */}
+      {/* Gerealiseerde Producten */}
       <div className="bg-white rounded-lg shadow-lg p-6">
-        <h3 className="text-lg font-semibold text-wood-brown mb-4">Snelle Acties</h3>
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Link
-            href="/eudr-validatie"
-            className="bg-forest-green text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors text-center"
-          >
-            Nieuwe Ontvangst Registreren
-          </Link>
-          <Link
-            href="/productie"
-            className="bg-wood-brown text-white px-6 py-3 rounded-lg hover:bg-yellow-800 transition-colors text-center"
-          >
-            Start Productie Run
-          </Link>
-          <Link
-            href="/rapporten"
-            className="bg-sage-green text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors text-center"
-          >
-            Bekijk Rapporten
-          </Link>
-        </div>
+        <h3 className="text-lg font-semibold text-wood-brown mb-4">Gerealiseerde Producten</h3>
+        <p className="text-sm text-gray-600 mb-4">Producten per batch (klik op batch voor trace-overzicht)</p>
+        <ProducedBatchesList />
       </div>
+
+      {/* Snelle acties verwijderd voor minimalistische weergave */}
+    </div>
+  )
+}
+
+function ProducedBatchesList() {
+  const [runs, setRuns] = useState<Array<any>>([])
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+
+  useEffect(()=>{
+    try{
+      const r = JSON.parse(localStorage.getItem('productieRuns') || '[]')
+      const withOutput = r.filter((run: any) => Array.isArray(run.outputProducts) && run.outputProducts.length > 0)
+      setRuns(withOutput)
+    }catch(e){
+      setRuns([])
+    }
+  },[])
+
+  if(runs.length === 0) {
+    return <p className="text-gray-500">Nog geen geproduceerde batches gevonden.</p>
+  }
+
+  // Group by product name
+  const groups: Record<string, Array<{run:any, hoeveelheid:number, eenheid:string, batchNummer:string}>> = {}
+  runs.forEach((run:any) => {
+    run.outputProducts.forEach((p:any) => {
+      if(!groups[p.naam]) groups[p.naam] = []
+      groups[p.naam].push({ run, hoeveelheid: p.hoeveelheid, eenheid: p.eenheid || 'st', batchNummer: run.batchNummer })
+    })
+  })
+
+  const toggle = (name:string) => setExpanded(prev => ({ ...prev, [name]: !prev[name] }))
+
+  return (
+    <div className="space-y-4">
+      {Object.keys(groups).map((naam) => {
+        const items = groups[naam]
+        const totaal = items.reduce((s, it) => s + Number(it.hoeveelheid || 0), 0)
+        return (
+          <div key={naam} className="bg-gray-50 rounded p-3">
+            <button onClick={()=>toggle(naam)} className="w-full text-left flex items-center justify-between">
+              <div>
+                <div className="font-semibold text-wood-brown">{naam}</div>
+                <div className="text-sm text-gray-600">Totaal: {totaal} {items[0].eenheid}</div>
+              </div>
+              <div className="text-sm text-gray-500">{items.length} batches ▾</div>
+            </button>
+
+            {expanded[naam] && (
+              <div className="mt-3 space-y-2">
+                {items.slice().reverse().map((it, idx) => (
+                  <div key={idx} className="p-2 bg-white rounded flex items-center justify-between">
+                    <div>
+                      <Link href={`/voorraad/batch/${encodeURIComponent(it.batchNummer)}`} className="text-forest-green font-medium">{it.batchNummer}</Link>
+                      <div className="text-xs text-gray-500">{new Date(it.run.productieDatum).toLocaleDateString('nl-NL')}</div>
+                    </div>
+                    <div className="text-sm text-gray-700">{it.hoeveelheid} {it.eenheid}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }
